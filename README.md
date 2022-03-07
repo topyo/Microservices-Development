@@ -76,35 +76,37 @@ I**Improves utilization**: Like VMs before them, containers enable developers an
 1. Developers build and run the container locally.
 2. Continuous integration server runs the same container and executes integration tests against it to make sure it passes expectations.
 3. The same container is shipped to a staging environment where its runtime behavior can be checked using load tests or manual QA.
-4. The same container is shipped to production.
-
-Being able to build, test, ship, and run the exact same container through all stages of the integration and deployment pipeline makes delivering a high quality, reliable application considerably easier.
+4. The same container is shipped to production:Being able to build, test, ship, and run the exact same container through all stages of the integration and deployment pipeline makes delivering a high quality, reliable application considerably easier.
 
 **Density & Resource Efficiency:**  Containers facilitate enhanced resource efficiency by allowing multiple heterogeneous processes to run on a single system. Resource efficiency is a natural result of the isolation and allocation techniques that containers use. Containers can be restricted to consume certain amounts of a host's CPU and memory. By understanding what resources a container needs and what resources are available from the underlying host server, you can right-size the compute resources you use with smaller hosts or increase the density of processes running on a single large host, increasing availability and optimizing resource consumption.
 
 **Flexibility:**  The flexibility of Docker containers is based on their portability, ease of deployment, and small size. In contrast to the installation and configuration required on a VM, packaging services inside of containers allows them to be easily moved between hosts, isolated from failure of other adjacent services, and protected from errant patches or software upgrades on the host system.
 
-## Use cases for containers
+#### Use cases for containers
 Containers are becoming increasingly prominent, especially in cloud environments. Many organizations are even considering containers as a replacement of VMs as the general purpose compute platform for their applications and workloads. But within that very broad scope, there are key use cases where containers are especially relevant.
 
-Microservices: Containers are small and lightweight, which makes them a good match for microservice architectures where applications are constructed of many, loosely coupled and independently deployable smaller services.
+*** Microservices***: Containers are small and lightweight, which makes them a good match for microservice architectures where applications are constructed of many, loosely coupled and independently deployable smaller services.
 DevOps: The combination of microservices as an architecture and containers as a platform is a common foundation for many teams that embrace DevOps as the way they build, ship and run software.
 Hybrid, multi-cloud: Because containers can run consistently anywhere, across laptop, on-premises and cloud environments, they are an ideal underlying architecture for hybrid cloud and multicloud scenarios where organizations find themselves operating across a mix of multiple public clouds in combination with their own data center.
 Application modernizing and migration: One of the most common approaches to application modernization starts by containerizing them so that they can be migrated to the cloud. 
  
-
-![](/3.png).
+![](/3.png)
 
 For the first module, we will  start with building a Docker container image for the monolithic node.js application and push it to 
  Container Registry (Amazon ECR) and in the next few steps, we will use **Docker**, **Github**, **Amazon Elastic Container Service (Amazon ECS)**, and **Amazon ECR** to deploy code into containers. 
 
 **Module 1 Prerequsite**
 To complete module 1, the prerequisites are 
-1. *** Having An AWS account:** If you don't already have an account with AWS, you can [sign up here](https://portal.aws.amazon.com/gp/aws/developer/registration/index.html). For all the exercises in this project we will be utilizing the  ****[AWS Free Tier](https://aws.amazon.com/free/). **Note:** Some of the services may require that an AWS account should be active for more than 12 hours. If you experience difficulty with any services and have a newly created account, please wait a few hours and try again.
+1. **Have An AWS account:** If you don't already have an account with AWS, you can
+<a href="(https://portal.aws.amazon.com/gp/aws/developer/registration/index.html)">Sign up here</a> 
+
+For all the exercises in this project we will be utilizing the <a href="(https://aws.amazon.com/free/)">**AWS Free Tier**</a>
+ 
+ **Note:** Some of the services may require that an AWS account should be active for more than 12 hours. If you experience difficulty with any services and have a newly created account, please wait a few hours and try again.
 
 ![](/AWS%20.png)
 
-2. **Install Docker:** We will use Docker to build the image files that will run in the containers. Docker is an open source project that can be download using  [for Mac](https://docs.docker.com/docker-for-mac/install/) or [for Windows](https://docs.docker.com/docker-for-windows/install/) 
+2. **Install Docker:** We will use Docker to build the image files that will run in the containers. Docker is an open source project that can be download using [for Mac](https://docs.docker.com/docker-for-mac/install/) or [for Windows](https://docs.docker.com/docker-for-windows/install/) 
 ![](/docker.png)
 
 
@@ -121,20 +123,18 @@ Next,  I installed a few prerequisite packages which let `apt` use packages ov
 
 ```
 $ sudo apt install apt-transport-https ca-certificates curl software-properties-common
-
 ```
 
 Then I added the GPG key for the official Docker repository to the system:
 
 ```
 $ curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-
 ```
+
 Also, I added the Docker repository to APT sources using :
 
 ```
 $ sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntufocal stable"
-
 ```
 
 This will also update the package database with the Docker packages from the newly added repo.
@@ -143,12 +143,8 @@ To ensure I install the Docker repo instead of the default Ubuntu repo I use the
 
 ```
 $ apt-cache policy docker-ce
-
-```
-
- 
+``` 
 Output of apt-cache policy docker-ce
-
 ```
 docker-ce:
   Installed: (none)
@@ -175,24 +171,21 @@ docker-ce:
      5:20.10.3~3-0~ubuntu-focal 500
         500 https://download.docker.com/linux/ubuntu focal/stable amd64 Packages
      5:20.10.2~3-0~ubuntu-focal 500
-
 ```
 I got the above output. You will also see an output like this, although the version number for Docker may be different:
 
 Notice that `docker-ce` is not installed, but the candidate for installation is from the Docker repository for Ubuntu 20.04 (`focal`).
 
-Finally, to install Docker, I use the command :
+Finally, to install Docker, I used the command :
 
 ```
 $ sudo apt install docker-ce
-
 ```
 
 Docker is now installed, the daemon started, and the process enabled to start on boot. To check that it’s running I used the command:
 
 ```
 $ sudo systemctl status docker
-
 ```
 
 The output should be similar to the following, showing that the service is active and running:
@@ -211,8 +204,10 @@ TriggeredBy: ● docker.socket
              └─16183 /usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock
 
 ```
-3. After Docker is installed, I can verify if it is running by entering **docker --version*** in the terminal. The version number should display like :
-```Docker version 20.10.12, build e91ed57```
+3. After Docker is installed, I can verify if it is running by entering **docker --version*** in the terminal. The version number should display like 
+
+```Docker version 20.10.12, build e91ed57
+```
 
 Now that the prequsite is sorted out we can now proceed with the steps required to containerize the Monolith. 
 
@@ -305,7 +300,7 @@ Keep the keys confidential in order to protect your AWS account and never email 
 
 7. After you download the .csv file, choose Close. When you create an access key, the key pair is active by default, and you can use the pair right away.
 
-## Installing or updating the latest version of the AWS CLI
+#### Installing or updating the latest version of the AWS CLI
 
 To install the AWS CLI, you can either download and install on your local PC or you can use some commands on your linux terminal to get it installed. For details on download and install AWS CLI <a href="https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html">Click here!</a>
 I will be using my local PC terminal to install AWS and below are the images and steps I took. Feel free to follow along
@@ -314,22 +309,22 @@ First,I  downloaded the installer using the curl command – The -o option speci
 ![](/AWS3.png)
 
 Then,  I unzipped the installer using the command:
-
+```
 $ unzip awscliv2.zip
-
+```
 If your Linux distribution doesn't have a built-in unzip command, use an equivalent to unzip it. The above command unzips the package and creates a directory named aws under the current directory.
 
 ![](/AWS4.png)
 
 Next, I ran the install program. The installation command uses a file named install in the newly unzipped aws directory. By default, the files are all installed to /usr/local/aws-cli, and a symbolic link is created in /usr/local/bin. The command includes sudo to grant write permissions to those directories.
-
+```
 $ sudo ./aws/install
-
+```
 You can install without sudo if you specify directories that you already have write permissions to. Use the following instructions for the install command to specify the installation location:
 
 Ensure that the paths you provide to the -i and -b parameters contain no volume name or directory names that contain any space characters or other white space characters. If there is a space, the installation fails.
 
---install-dir or -i – This option specifies the directory to copy all of the files to.
+```--install-dir or -i ```– This option specifies the directory to copy all of the files to.
 
 The default value is /usr/local/aws-cli.
 
@@ -345,33 +340,32 @@ $ aws --version
 
 ![](/AWS5.png)
 
-**Note**
+**Note**:
 If you already have AWS CLI installed, run the following command in the terminal to ensure it is updated to the latest version: 
 
-```bash
-*pip install awscli --upgrade --user*
+```
+pip install awscli --upgrade --user*
 ```
 
-## Note: If you have never used AWS CLI before, you may need to s<p><a href="https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html">configure your credentials here !</a></p>
-
+### Note: If you have never used AWS CLI before, you may need to <p><a href="https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html">configure your credentials here.</a></p>
 Since I have not configured AWS CLI before for the user I created earlier, I configured their credentials on linux terminal using the command 
 
 ![](/AWS6.png)
-``
+```
 $ aws configure
 AWS Access Key ID [None]: AKIAIOSFODNN7EXAMPLE
 AWS Secret Access Key [None]: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
 Default region name [None]: us-west-2
 Default output format [None]: json
-``
+```
 
-## STEP 2 :
+### STEP 2 :
 
-a) Have a text editor: If you don't already have a text editor for coding, install one to your local environment.You can use <p><a href="https://atom.io/">Atom</a></p>
+a) Have a text editor: If you don't have a text editor for coding, install one to your local environment.You can use <p><a href="https://atom.io/">Atom</a></p>
 Atom is a simple, open-source text editor from GitHub that is popular with developers.
 or 
 <p><a href="https://code.visualstudio.com/">Visual Studio Code</a></p> 
-Visual Studio Code (VS code) is a lightweight but powerful source code editor which runs on your desktop and is available for Windows, macOS and Linux. It comes with built-in support for JavaScript, TypeScript and Node.js and has a rich ecosystem of extensions for other languages (such as C++, C#, Java, Python, PHP, Go) and runtimes (such as .NET and Unity). Begin your journey with VS Code with these introductory videos.
+Visual Studio Code (VS code) is a lightweight but powerful source code editor which runs on your desktop and is available for Windows, macOS and Linux. It comes with built-in support for JavaScript, TypeScript and Node.js and has a rich ecosystem of extensions for other languages (such as C++, C#, Java, Python, PHP, Go) and runtimes (such as .NET and Unity).
 
 ![](/vs.png)
 
@@ -400,7 +394,7 @@ On selecting the folder, the below showed on the Vscode that I can now work on
 ![](/Git5.png)
 
 
-## Step 3a : Create the repository/ Provision Repository:
+#### Step 3a : Create the repository/ Provision Repository:
 To create a repository we begin by 
 a.  Navigate to the <p><a href=
 "https://console.aws.amazon.com/ecs/home?#/repositories">Amazon ECR console</a></p>
@@ -422,7 +416,7 @@ Mine looks like this
 ![](/AWS9.png)
 
 
-## Step 3b: Authenticate the Docker log
+#### Step 3b: Authenticate the Docker log
 Before we authenticate the docker log, we need to navigate to the repository we earlier cloned.
 i.e Open your terminal, and set your path to the 2-containerized/services/api section of the GitHub code in the directory you have it cloned or downloaded it into: ~/amazon-ecs-nodejs-microservices/2-containerized/services/api.
 I did Mine like this
@@ -433,11 +427,11 @@ After navigating to the api file, we can authenticate the docker log . To comple
 
 ![](/AWS12.png)
 
-### Step 3c :Build the Docker Image
+#### Step 3c :Build the Docker Image
 
 On the terminal on your local PC, run docker build -t api. command. NOTE :The period (.) after api is important here.
 
-``docker build -t api .``
+```docker build -t api .```
 
 ![](/AWS13.png)
 ![](/AWS14.png)
@@ -448,27 +442,27 @@ After the build compeletes, tag the image so you can push it to the repository u
 
 E.g docker tag api:latest 853242329412.dkr.ecr.ca-central-1.amazonaws.com/api:latest or docker tag api:latest 85324329412.dkr.ecr.ca-central-1.amazonaws.com/api:v1 
 
-*** Pro tip: The :v1 represents the image build version. Every time you build the image, you should increment this version number. If you were using a script, you could use an automated number, such as a time stamp to tag the image. This is a best practice that allows you to easily revert to a previous container image build in the future ***
+* Pro tip: The :v1 represents the image build version. Every time you build the image, you should increment this version number. If you were using a script, you could use an automated number, such as a time stamp to tag the image. This is a best practice that allows you to easily revert to a previous container image build in the future.
 
 
-### Step 3e: Push the image to ECR
+#### Step 3e: Push the image to ECR
 Run docker push to push your image to ECR
 docker push [account-id].dkr.ecr.[region].amazonaws.com/api:latest
 or use this command (see pro tip above)
-docker push [account-id].dkr.ecr.[region].amazonaws.com/api:v1  ()
+docker push [account-id].dkr.ecr.[region].amazonaws.com/api:v1  
  **Note:** replace the [account-ID] and [region] placeholders with your specific information.
-If you navigate to your Amazon ECR repository, you should see your image tagged *v1*.
+If you navigate to the Amazon ECR repository, you should see your image tagged *v1*.
 ![](/AWS15.png)
 Now that my image is stored in the respository, it can be pulled back down wherever I need to run it, including Amazon Elastic Container Service.
+![](/AWS16.png)
 
-![]](/AWS16.png)
-![]](/AWS17.png)
+![](/AWS17.png)
 
 ### Module 2: Deploy the Monolith
 
 In this module, we will use the Amazon Container Service (Amazon ECS) to instantiate a managed cluster of EC2 compute instances and deploy our image as a container running on the cluster. 
 
-## What is Amazon Elastic Container Service?
+### What is Amazon Elastic Container Service?
 
  Container Service (Amazon ECS) is a highly scalable, high performance container management service that supports Docker containers and allows you to easily run applications on a managed cluster of Amazon EC2 instances. With simple API calls, you can launch and stop Docker-enabled applications, query the complete state of your cluster, and access many familiar features like security groups, Elastic Load Balancing, EBS volumes, and IAM roles. You can use Amazon ECS to schedule the placement of containers across your cluster based on your resource needs and availability requirements. You can also integrate your own scheduler or third-party schedulers to meet business or application specific requirements.
 There is no additional charge for Amazon ECS. You pay for the AWS resources (for example, EC2 instances or EBS volumes) you create to store and run your application.
@@ -481,18 +475,20 @@ The AWS services we will be utilizing for module 2 are
 <p><a href="https://aws.amzon.com/cloudformation/">AWS CloudFormation</a></p>
 <p><a href="https://aws.amazon.com/elasticloadbalancing/applicationloadbalancer/">Elastic Load Balancing</a></p>
 
-Lets look at the architecture overview before we move on 
+Lets look at the architecture before we move on 
 
 ![](/m1.png)
 
 We deploy the monolith by following the steps below 
 
-## Step 1. Navigate to the AWS CloudFormation console and select ***Create stack***
+#### Step 1. Navigate to the AWS CloudFormation console and select ***Create stack***
 
 ![](/2.1.png)
 
 a. Select Upload a template file and choose the ecs.yml file from the GitHub project at amazon-ecs-nodejs-microservice/2-containerized/infrastructure/ecs.yml then select Next.
-***Note that the GitHub project at amazon-ecs-nodejs-microservice/2-containerized/infrastructure/ecs.yml was downloaded/ cloned ealier in Module 1
+
+
+#### Note that the GitHub project at amazon-ecs-nodejs-microservice/2-containerized/infrastructure/ecs.yml was downloaded/ cloned ealier in Module 1
 ![](/2.2.png)
 
 b. For the stack name, enter *BreakTheMonolith-Demo*.(Please ensure you type the name and not copy&paste) and verify that the other parameters have the following values:
@@ -500,7 +496,7 @@ b. For the stack name, enter *BreakTheMonolith-Demo*.(Please ensure you type th
     2. InstanceType = *t2.micro*
     3. MaxSize = *2*
    
-    ![](/2.3.png)
+![](/2.3.png)
 
 c. Select **Next***
 ![](/2.4.png)
@@ -787,7 +783,9 @@ Next navigate into 3-microservices/services file and set your path to 
 *~/amazon-ecs-nodejs-microservices/3-microservices/services*
 I used the command 
 
-```$ cd ~/amazon-ecs-nodejs-microservices/3-microservices/services ```
+```
+$ cd ~/amazon-ecs-nodejs-microservices/3-microservices/services
+ ```
 
 
 
@@ -796,35 +794,44 @@ b) **Build and Tag Each Image**
 
 - On the terminal, run  the command 
 *docker build -t [service-name] ./[service-name]
-*Replace the *[service-name]*, for example: 
+* Replace the *[service-name]*, for example: 
 ```
-$ sudo docker build -t posts ./ posts```
+$ sudo docker build -t posts ./ posts
+```
 
 ![](post2.png)
 
 - After the build completes,  we tag the image so we  can push it to the repository. We use the command 
-$ sudo docker tag [service name]:latest [account-ID].dkr.ecr.[region].amazonaws.com/[service-name]:v1
+
+```$ sudo docker tag [service name]:latest [account-ID].dkr.ecr.[region].amazonaws.com/[service-name]:v1```
+
 For example Mine is 
 
-Example: $ sudo docker tag posts:latest 853242329412.dkr.ecr.us-east-1 amazonaws.com/posts:v1
+```$ sudo docker tag posts:latest 853242329412.dkr.ecr.us-east-1 amazonaws.com/posts:v1```
+
 Finally we push the image  using the command 
-$ sudo docker push [account-id].dkr.ecr.[region].amazonaws.com/[service-name]:v1
+
+```$ sudo docker push [account-id].dkr.ecr.[region].amazonaws.com/[service-name]:v1```
 
 Mine is 
-Example: $ sudo docker push 853242329412.dkr.ecr.us-east-1.amazonaws.com/threads:v1
-$ sudo docker push 853242329412.dkr.ecr.us-east-1.amazonaws.com/posts:v1
 
-If you navigate to your ECR repository, you should see your images tagged with v1.
+```sudo docker push 853242329412.dkr.ecr.us-east-1.amazonaws.com/threads:v1```
+
+For post
+
+```$ sudo docker push 853242329412.dkr.ecr.us-east-1.amazonaws.com/posts:v1```
+
+If you navigate to your ECR repository, you should see the  images tagged with v1.
 
 Repeat these steps for each microservice image.
 
-**NOTE:** Be sure to build and tag all three images.
+***NOTE:** Be sure to build and tag all three images.
 
-## Module Four - Deploy Microservices
+### Module Four - Deploy Microservices
 
 In this module, We will deploy the node.js application as a set of interconnected services behind an Application Load Balancer (ALB). Also, we will use the ALB to seamlessly shift traffic from the monolith to the microservices. 
 
-## Architecture Overview
+#### Architecture Overview
 
 This is the process that we will follow to deploy the microservices and safely transition the application's traffic away from the monolith.
 
@@ -835,28 +842,24 @@ This is the process that we will follow to deploy the microservices and safely t
 3. **Configure the Target Groups** Like in Module 2, you will add a target group for each service and update the ALB Rules to connect the new microservices.
 4. **Shut Down the Monolith** By changing one rule in the ALB, you will start routing traffic to the running microservices. After traffic reroute has been verified, shut down the monolith.
 To complete this module we will be using the ffollowing AWS services 
-
-
 <p><a href="(https://aws.amazon.com/ecs/)">Amazon Elastic Container Service</a></p>
 <p><a href="(https://aws.amazon.com/ecr/)">Amazon Elastic Container Registry</a></p>
 
 <p><a href="(https://aws.amazon.com/cloudformation/)">AWS CloudFormation</a></p>
 <p><a href="(https://aws.amazon.com/elasticloadbalancing/applicationloadbalancer/)">Elastic Load Balancing</a></p>
 
-Like other modules, we will complete this module as well in steps. We will deploy three new services to the cluster that we launched in Module 2. Similarto module 2, we will write Task Definitions for each of the service.
+Like other modules, we will complete this module as well in steps. We will deploy three new services to the cluster that we launched in Module 2. Similar to module 2, we will write Task Definitions for each of the service.
 
 **NOTE**: It is possible to add multiple containers to a single task definition. This means you could run all three microservices as different containers from a single service. However, this approach is still monolithic since each container would need to scale linearly with the service. Our ultimate goal is to have three independent services. Each service requires its own task definition running a container with the image for that respective service. You can either create these task definitions from the Amazon ECS console, or speed things up by writing them as JSON. To write the task definition as a JSON file, follow these steps:
 
-1. From <p><a href="(https://console.aws.amazon.com/ecs/home)">Amazon Container Service console</a></p>
-
-under **Amazon ECS**, select **Task definitions**.
+1. From <p><a href="(https://console.aws.amazon.com/ecs/home)">Amazon Container Service console</a></p> under **Amazon ECS**, select **Task definitions**.
 2. In the **Task Definitions** page, select the **Create new Task Definition** button.
 3. In the **Select launch type compatibility** page, select the **EC2** option and then select **Next step**.
 4. In the Configure task and container definitions page, scroll to the **Volumes** section and select the **Configure via JSON** button.
 5. Copy and paste the following code snippet into the JSON field, replacing the existing code.Remember to replace the [service-name], [account-ID], [region], and [tag] placeholders.
 
 **Note:** The following parameters are used for the task definition:
-
+```
 {
     "containerDefinitions": [
         {
@@ -879,11 +882,9 @@ under **Amazon ECS**, select **Task definitions**.
     "placementConstraints": [],
     "family": "[service-name]"
 }
-
+```
 Repeat the steps above and to create a task definition for each service:
 
-posts
-threads
 
 ![](thread3.png)
 users
@@ -904,17 +905,14 @@ $ aws elbv2 create--group --region us-east-1 --name drop-traffic --protocol HTTP
 
 Mine is 
 ![](east.png)
+
 ![](drop.png)
 
-## Access the listener rules
-
-
-
-The <p><a href="(http://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-listeners.html)">listener</a></p>
-checks for incoming connection requests to your ALB in order to route traffic appropriately.Right now, the four services (monolith and your three microservices) are running behind the same load balancer. To make the transition from monolith to microservices, we will start routing traffic to your microservices and stop routing traffic to your monolith.
+### Access the listener rules 
+The <p><a href="(http://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-listeners.html)">listener</a></p> checks for incoming connection requests to your ALB in order to route traffic appropriately.Right now, the four services (monolith and your three microservices) are running behind the same load balancer. To make the transition from monolith to microservices, we will start routing traffic to your microservices and stop routing traffic to your monolith.
 To do that we access the listener rules by 
-1. Navigate to the [Load Balancer section of the EC2 Console](https://console.aws.amazon.com/ec2/v2/home?#LoadBalancers:).
-- Locate the Load Balancer named **demo** and select the checkbox next to it to see the Load Balancer details.
+1. Navigate to the <a href="(https://console.aws.amazon.com/ec2/v2/home?#LoadBalancers:)"> Load Balancer Section of the EC2 Console</a>
+- Locate the Load Balancer named with **demo** includedin the name and select the checkbox next to it to see the Load Balancer details.
 - Select the **Listeners** tab.
 **Update Listener Rules**
 There should only be one listener listed in this tab. Take the following steps to edit the listener rules:
@@ -922,18 +920,20 @@ There should only be one listener listed in this tab. Take the following steps t
 - Under the **Rules** column, select **View/edit rules**.
 - On the **Rules** page, select the plus (**+**) button.The option to **Insert Rule** appears on the page.
 - Use the following rule template to insert the necessary rules which include one to maintain traffic to the monolith and one for each microservice:
+```
     - IF Path = /api/[service-name]* THEN Forward to [service-name]For example: IF Path = /api/posts* THEN Forward to posts
     - Insert the rules in the following order:
         - api: */api** forwards to *api*
         - users: */api/users** forwards to *users*
         - threads: */api/threads** forwards to *threads*
         - posts: */api/posts** forwards to *posts*
+```
 - Select **Save**.
 - Select the back arrow at the top left corner of the page to return to the load balancer console.
 ![](/list.png)
 
 
-## Deploy the Microservices
+### Deploy the Microservices
 
 To deploy the three microservices (posts, threads, and users) to the cluster, we will repeat the steps below for each of the three microservice. We begin by 
 - Navigating to the [Amazon ECS console](https://console.aws.amazon.com/ecs/home). Select **Clusters** from the left menu bar.
@@ -956,7 +956,7 @@ To deploy the three microservices (posts, threads, and users) to the cluster, we
         - For the **Target group name**, select the appropriate group: *(***posts**, **threads**, or **users**)
 - Select **Next step**.
 
-!(deploy2.png)
+![](deploy2.png)
 
 - On the **Set Auto Scaling** page, select **Next step**.
 - On the **Review** page, select **Create Service**.
@@ -994,7 +994,7 @@ Amazon ECS will now empty connections from containers the service has deployed o
 
 Optionally, you can delete the api service. In the **Services** tab, select the checkbox next to **api**, select **Delete**, and confirm the deletion.
 
-**You have now fully transitioned your node.js from the monolith to microservices, without any downtime!**
+**We have now fully transitioned your node.js from the monolith to microservices, without any downtime!**
 
 **Find your service URL**: This is the same URL that you used in Module 2 of this tutorial.
 
@@ -1010,9 +1010,10 @@ You should see a message 'Ready to receive requests'.
 - http://[DNS name]/api/users
 - http://[DNS name]/api/threads
 - http://[DNS name]/api/posts
+
 ![](/disable.png)
 
-## Module Five - Clean Up
+### Module Five - Clean Up
 
 In this module, you will terminate the resources you created during this tutorial. You will stop the services running on Amazon ECS, delete the ALB, and delete the AWS CloudFormation stack to terminate the ECS cluster, including all underlying EC2 instances.
 
@@ -1029,8 +1030,7 @@ Cleaning up is not required, but will help you avoid ongoing charges for keeping
 ---
 
 ## Clean Up Instructions
-
-Follow the instructions below to delete the AWS resources you created in each module.
+We will now clean up. Please follow the instructions below to delete the AWS resources  created in each module.
 
 Start clean up by deleting each of the services (posts, threads, abd users) that are running in your cluster:
 
@@ -1040,7 +1040,9 @@ Start clean up by deleting each of the services (posts, threads, abd users) that
 - In the **Services** tab, select a service and then select **Delete**.
 - Confirm the deletion.
 - Repeat the steps until all the services are deleted.
+
 ![](delete.png)
+
 Before proceeding to the next step, you need to either wait for all running tasks to terminate or select the **Tasks** tab and select **Stop All**.
 
 Repeat these steps for each of your services on the cluster.
@@ -1050,19 +1052,22 @@ Navigate to the [Load Balancer section of the EC2 Console.](https://console.aws
 - Select the checkbox next to **demo** and select the **Listeners** tab.
 - Select the listener, then select **Delete**.
 
-![[](/delete2.png)
+![](/delete2.png)
+
 - Confirm the deletion.Navigate to [Target Groups](https://console.aws.amazon.com/ec2/v2/home?#TargetGroups:) in the EC2 console.Check the checkbox at the top of the list (next to **Name**) to select all target groups.Select **Actions** then select **Delete**.Confirm the deletion.
-![[](/delete3.png)
+
+![](/delete3.png)
 Navigate to the [AWS CloudFormation console](https://console.aws.amazon.com/cloudformation/home?).
 
 - Check the box next to the Cloudformation stack **BreakTheMonolith-Demo**.
 - Select **Actions** then select **Delete Stack**.
 - Confirm the deletion.
-- The stack status should change to DELETE_IN_PROGRESS*.*
+- The stack status should change to **DELETE_IN_PROGRESS*.*
 
 **⚠** **WARNING!** Leaving a stack running will result in charges on your AWS account.
 
-![[](/delete4.png)
+![](/delete4.png)
+
 Navigate to [Task Definitions](https://console.aws.amazon.com/ecs/home?#/taskDefinitions) in the Amazon ECR console.
 
 - Select a task definition (api, posts, threads, or users).
@@ -1084,5 +1089,4 @@ Navigate to [Repositories](https://console.aws.amazon.com/ecs/home?#/repositori
 
 # We Just Broke the Monolith
 
-**Nice Work! We have completed the project and split a monolithic app into containerized microservices using Amazon Web Services (AWS).**
-
+### Nice Work! We have completed the project and split a s monolithic app into containerized microservices using Amazon Web Services (AWS).
