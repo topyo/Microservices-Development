@@ -1089,4 +1089,4 @@ Navigate to [Repositories](https://console.aws.amazon.com/ecs/home?#/repositori
 
 # We Just Broke the Monolith
 
-### Nice Work! We have completed the project and split a s monolithic app into containerized microservices using Amazon Web Services (AWS).
+### Nice Work! We have completed the project and split a  monolithic app into containerized microservices using Amazon Web Services (AWS).
